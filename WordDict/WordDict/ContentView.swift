@@ -13,30 +13,74 @@ struct ContentView: View {
                 
                 VStack {
                     // Header Status
-                    HStack {
-                         Text("\(viewModel.currentIndex + 1) / \(viewModel.words.count)")
-                            .font(.headline)
-                            .foregroundColor(.gray)
-                        Spacer()
-                        Button(action: {
-                            viewModel.toggleRandomMode()
-                        }) {
-                            Image(systemName: viewModel.isRandom ? "shuffle.circle.fill" : "arrow.forward.circle")
-                                .font(.title)
+                    VStack(spacing: 8) {
+                        // Filename + Mode
+                        HStack {
+                            Text(viewModel.currentFilename)
+                                .font(.headline)
+                                .lineLimit(1)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                viewModel.toggleRandomMode()
+                            }) {
+                                Image(systemName: viewModel.isRandom ? "shuffle.circle.fill" : "arrow.forward.circle")
+                                    .font(.title2)
+                            }
                         }
+                        
+                        // Counters
+                        HStack {
+                            HStack(spacing: 4) {
+                                Text("Remaining:")
+                                    .foregroundColor(.gray)
+                                Text("\(viewModel.remainingCount)")
+                                    .foregroundColor(.primary) // Darker/Default text color
+                                    .fontWeight(.semibold)
+                            }
+                            
+                            Spacer()
+                            
+                            HStack(spacing: 4) {
+                                Text("Completed:")
+                                    .foregroundColor(.gray)
+                                Text("\(viewModel.completedCount)")
+                                    .foregroundColor(.primary) // Darker/Default text color
+                                    .fontWeight(.semibold)
+                            }
+                        }
+                        .font(.footnote)
                     }
                     .padding()
                     
                     Spacer()
                     
                     // Card Area with Gestures
-                    CardView(
-                        word: viewModel.currentWord,
-                        isRevealed: viewModel.isRevealed,
-                        onPlayAudio: {
-                            viewModel.speakCurrent()
+                    if viewModel.words.isEmpty {
+                        VStack(spacing: 20) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 60))
+                                .foregroundColor(.green)
+                            Text("All words completed!")
+                                .font(.title2)
+                            Button("Restart") {
+                                // Just reloading the current file effectively restarts
+                                // Or we could add a restart function. 
+                                // Toggling mode does it, but let's add a restart or just "Reload" logic.
+                                // For now, simple toggle mode resets.
+                                viewModel.toggleRandomMode() 
+                                viewModel.toggleRandomMode()
+                            }
                         }
-                    )
+                    } else {
+                        CardView(
+                            word: viewModel.currentWord,
+                            isRevealed: viewModel.isRevealed,
+                            onPlayAudio: {
+                                viewModel.speakCurrent()
+                            }
+                        )
                         .gesture(
                             DragGesture()
                                 .onEnded { value in
@@ -68,6 +112,7 @@ struct ContentView: View {
                                     }
                                 }
                         )
+                    }
                     
                     Spacer()
                     
@@ -100,8 +145,9 @@ struct ContentView: View {
                     guard let selectedFile: URL = try result.get().first else { return }
                     if selectedFile.startAccessingSecurityScopedResource() {
                         let content = try String(contentsOf: selectedFile, encoding: .utf8)
+                        let filename = selectedFile.lastPathComponent
                         DispatchQueue.main.async {
-                            viewModel.loadWords(from: content)
+                            viewModel.loadWords(from: content, filename: filename)
                         }
                         selectedFile.stopAccessingSecurityScopedResource()
                     }

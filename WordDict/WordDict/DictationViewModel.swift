@@ -2,27 +2,29 @@ import SwiftUI
 import Combine
 
 class DictationViewModel: ObservableObject {
-    @Published var words: [Word] = []
+    @Published var words: [Word] = [] // The current active playlist
     @Published var currentIndex: Int = 0
     @Published var isRevealed: Bool = false
     @Published var isRandom: Bool = false
+    @Published var currentFilename: String = "Sample"
     
-    // Maintain a shuffled list of indices if in random mode
-    private var randomIndices: [Int] = []
+    // Store all words to support reset logic
+    private var allWords: [Word] = []
     
     var currentWord: Word? {
         if words.isEmpty { return nil }
-        if isRandom {
-             if currentIndex < randomIndices.count {
-                 return words[randomIndices[currentIndex]]
-             }
-             return nil
-        } else {
-             if currentIndex < words.count {
-                 return words[currentIndex]
-             }
-             return nil
+        if currentIndex < words.count {
+            return words[currentIndex]
         }
+        return nil
+    }
+    
+    var completedCount: Int {
+        return allWords.count - words.count
+    }
+    
+    var remainingCount: Int {
+        return words.count
     }
     
     init() {
@@ -35,7 +37,8 @@ class DictationViewModel: ObservableObject {
         if let path = Bundle.main.path(forResource: "sample_words", ofType: "md") {
            do {
                let content = try String(contentsOfFile: path, encoding: .utf8)
-               self.words = WordParser.parseContent(content)
+               self.allWords = WordParser.parseContent(content)
+               self.currentFilename = "sample_words"
                resetPlayback()
            } catch {
                print("Error loading sample data: \(error)")
@@ -46,22 +49,32 @@ class DictationViewModel: ObservableObject {
              boy[bɔ i]n. 男孩
              girl[ɡɜːl]n. 女孩
              """
-             self.words = WordParser.parseContent(sample)
+             self.allWords = WordParser.parseContent(sample)
+             self.currentFilename = "Sample"
              resetPlayback()
         }
     }
     
     // Used for importing external files
-    func loadWords(from content: String) {
-        self.words = WordParser.parseContent(content)
+    func loadWords(from content: String, filename: String) {
+        self.allWords = WordParser.parseContent(content)
+        self.currentFilename = (filename as NSString).deletingPathExtension
         resetPlayback()
         speakCurrent()
     }
     
     private func resetPlayback() {
+        // Reset Logic: 
+        // 1. Reload words from allWords
+        // 2. If random, shuffle them
+        // 3. Reset index and revealed state
+        
         if isRandom {
-            randomIndices = Array(0..<words.count).shuffled()
+            self.words = allWords.shuffled()
+        } else {
+            self.words = allWords
         }
+        
         currentIndex = 0
         isRevealed = false
     }
@@ -75,19 +88,44 @@ class DictationViewModel: ObservableObject {
     func next() {
         if words.isEmpty { return }
         
-        // Loop logic: if at end, go to 0, else increment
-        if currentIndex < words.count - 1 {
-            currentIndex += 1
+        // Smart Completion Logic:
+        // If the user did NOT flip the card (isRevealed == false),
+        // we consider it mastered and remove it from the list.
+        if !isRevealed {
+            markCurrentAsMastered()
         } else {
-            currentIndex = 0 // Wrap around
-            // User Request: Reshuffle when looping back to start in random mode
-            if isRandom {
-                randomIndices = Array(0..<words.count).shuffled()
+            // Normal navigation: move to next
+            if currentIndex < words.count - 1 {
+                currentIndex += 1
+            } else {
+                currentIndex = 0 // Wrap around
             }
         }
         
         isRevealed = false
         speakCurrent()
+    }
+    
+    private func markCurrentAsMastered() {
+        guard currentIndex < words.count else { return }
+        words.remove(at: currentIndex)
+        
+        // After removal:
+        // If list empty -> Done.
+        // If not empty -> currentIndex now points to the next word automatically (since arrays shift).
+        // If we were at the last item, currentIndex is now out of bounds words.count.
+        // So we need to wrap or clamp.
+        
+        if words.isEmpty {
+            currentIndex = 0
+            return
+        }
+        
+        if currentIndex >= words.count {
+            currentIndex = 0
+        }
+        
+        // Do NOT increment currentIndex here because the next word 'slid' into the current slot.
     }
     
     func previous() {
