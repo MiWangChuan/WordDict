@@ -131,8 +131,15 @@ struct ContentView: View {
             .navigationTitle("WordDict")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showFileImporter = true }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color(red: 242/255, green: 242/255, blue: 247/255))
+                            .frame(width: 36, height: 36)
                         Image(systemName: "doc.badge.plus")
+                            .foregroundColor(.primary)
+                    }
+                    .onTapGesture {
+                        showFileImporter = true
                     }
                 }
             }
