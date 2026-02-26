@@ -13,7 +13,7 @@
       "type": "module"
    },
    "content_scripts": [ {
-      "js": [ "assets/index.ts-CpwyaNyi.js" ],
+      "js": [ "assets/content-script.js" ],
       "matches": [ "\u003Call_urls>" ]
    } ],
    "description": "Convert HTML content to Markdown format with advanced formatting support",
@@ -30,7 +30,7 @@
    "version": "0.5.6",
    "web_accessible_resources": [ {
       "matches": [ "\u003Call_urls>" ],
-      "resources": [ "assets/index.ts-CpwyaNyi.js" ],
+      "resources": [ "assets/content-script.js" ],
       "use_dynamic_url": false
    } ]
 }

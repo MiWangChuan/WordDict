@@ -1,4 +1,4 @@
-import{r as c,j as e,c as f,R as w}from"./index-nGpbVgKO.js";const g=({message:a,type:n,onClose:r})=>(c.useEffect(()=>{const i=setTimeout(()=>{r()},3e3);return()=>clearTimeout(i)},[r]),e.jsx("div",{className:"fixed inset-x-0 bottom-4 flex justify-center items-center",children:e.jsxs("div",{className:`
+import{r as c,j as e,c as f,R as w}from"./vendor.js";const g=({message:a,type:n,onClose:r})=>(c.useEffect(()=>{const i=setTimeout(()=>{r()},3e3);return()=>clearTimeout(i)},[r]),e.jsx("div",{className:"fixed inset-x-0 bottom-4 flex justify-center items-center",children:e.jsxs("div",{className:`
         px-4 py-3 rounded-lg shadow-lg
         transform transition-all duration-300 ease-in-out
         flex items-center space-x-2 max-w-sm mx-auto
