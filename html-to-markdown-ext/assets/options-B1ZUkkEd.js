@@ -1,0 +1,1 @@
+import{c as t,j as o,R as e}from"./index-nGpbVgKO.js";const n=()=>o.jsxs("div",{className:"p-4",children:[o.jsx("h1",{className:"text-xl font-bold mb-4",children:"HTML to Markdown Converter Options"}),o.jsx("p",{children:"Options coming soon..."})]}),s=document.getElementById("root"),r=t(s);r.render(o.jsx(e.StrictMode,{children:o.jsx(n,{})}));
